@@ -31,15 +31,12 @@ var mw = (total_w-board_w)/2,   mh = (total_h-board_h)/2;  //将棋盤周りの�
 var stand_w = 9, stand_h = 1;    //駒台のサイズ
 var msw = 1, msh = 2;     //駒台周りの余白
 
-//駒の選択
-function draft(){
+function prep(){    //準備モード(駒の選択&駒の配置)
+    //駒の選択
     list = [[0,0,0,1,1,1,0,1,0,0],      //王側[1]
-            [0,0,0,0,1,1,0,0,1,2]];     //玉側[2]
-    return(list);
-}
-
-//駒の配置
-function prep(){
+    [0,0,0,0,1,1,0,0,1,2]];     //玉側[2]
+    
+    //駒の配置
     initLists = [[               //盤の初期配置
         [0,0,2,0,0],
         [0,0,0,0,0],
@@ -53,13 +50,15 @@ function prep(){
         [0,0,0,0,0],
         [0,0,1,0,0]
     ]]
-    return(initLists);
+
+    //ゲームスタート
+    init(initLists);
 }
 
 //初期化処理
-function init() {
-    numstand = draft()
-    initLists = prep(numstand)
+function init(initLists) {
+//    numstand = draft()
+//    initLists = boardPrep(numstand)
     ctx.font = " 30px 'ＭＳ ゴシック'"
     
     board = initLists[0];
@@ -74,8 +73,8 @@ function init() {
     ];
     stand = [[0,0,0,0,0,0,0,0,0,0],        //持ち駒(格納位置:駒台の場所、値:駒id) 駒台内の位置
              [0,0,0,0,0,0,0,0,0,0]];
-    //numstand = [[0,0,0,0,0,0,0,0,0,0],        //持ち駒(格納位置:駒id、値:個数)　駒台内の内訳
-    //            [0,0,0,0,0,0,0,0,0,0]];
+    numstand = [[0,0,0,0,0,0,0,0,0,0],        //持ち駒(格納位置:駒id、値:個数)　駒台内の内訳  王側[1]
+                [0,0,0,0,0,0,0,0,0,0]];       //                                           玉側[2]
     turn = Math.floor(Math.random ()*2)*2 -1;   //手番をランダムで決定
     winner = 0;
     recentx = null;
@@ -297,10 +296,10 @@ function masu_select(tx,ty){
             //init();  //ゲーム開始
         }else if(psize*1<tx && tx<psize*(total_w-2) && height/2+psize*3<ty && ty<(height/2+psize*5)){
             mode=3;  //CPU通常対局
-            init();  //ゲーム開始
+            prep();  //ゲーム開始
         }else if(psize*1<tx && tx<psize*(total_w-2) && height/2+psize*5<ty && ty<(height/2+psize*7)){
             mode=4;  //友達通常対局
-            init();  //ゲーム開始
+            prep();  //ゲーム開始
         }else{
             return;
         }
