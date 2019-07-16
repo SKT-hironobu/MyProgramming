@@ -51,6 +51,8 @@ function prep(){    //準備モード(駒の選択&駒の配置)
         [0,0,1,0,0]
     ]]
 
+    //action0を呼び出しまくろう
+
     //ゲームスタート
     init(initLists);
 }
@@ -349,6 +351,43 @@ function action1(x,y){    //人間
     }
     draw_all();
 }
+
+function action0(x,y){    //人間
+    if(isinside(x,y)){
+        bx = x-mw;
+        by = y-mh;
+        if(status==0){
+            sbx = bx;
+            sby = by;
+            movefrom(bx,by);
+            return;
+        }else if(status==1){
+            if(movable[by][bx] == 1){  //移動可能な場合
+                moveto(bx,by);
+                //turn *= -1;
+            }
+        }else if(status==2){
+            if(movable[by][bx] == 1){  //移動可能な場合
+                setto(bx,by);
+                //turn *= -1;
+            }
+        }
+    }else if(isstand(x,y)){
+        if(status==0){
+            if(turn==1){
+                ssx = x-(total_w-msw-stand_w);
+                ssy = y-(total_h-msh-stand_h);
+            }else if(turn==-1){
+                ssx = msw+stand_w-x-1;
+                ssy = msh+stand_h-y-1;
+            }
+            setfrom(ssx,ssy);
+            return;
+        }
+    }
+    draw_all();
+}
+
 function action2(){   //CPUの手番
     CPUthink(CPUmove);
 }
