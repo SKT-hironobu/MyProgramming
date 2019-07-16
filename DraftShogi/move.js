@@ -77,6 +77,7 @@ function movefrom(bx,by){
 //移動後の座標の指定
 function moveto(bx,by){
     var id = board[sby][sbx];
+    /*
     if(change[id] > 0){   //成処理
         if((changable(sby)==1) || (changable(by) == 1)){
             if((id==KE||id==KY||id==HU)&&(by==turn*(-4)+4)){   //歩と香が端に来た
@@ -90,6 +91,26 @@ function moveto(bx,by){
             }
         }
     }
+    */
+    if(change[id] > 0){   //成処理
+        if((id==KE)&&(by==turn*(-1)+2)){  　 //桂が端2に来た
+            id = change[id];
+        }
+        if((changable(sby)==1) || (changable(by) == 1)){
+            if((id==KE||id==KY||id==HU)&&(by==turn*(-2)+2)){   //歩と香が端に来た
+                id = change[id];
+            /*
+            }else if((id==KE)&&(by==turn*(-1)+2)){  　 //桂が端2に来た
+                id = change[id];
+            */
+            }else if(turn==-1 && (mode==1||mode==3)){
+                id = change[id];
+            }else{
+                if(confirm("成りますか？")) id = change[id];
+            }
+        }
+    }     
+
     if(member[by][bx] == turn*(-1)){   //駒取処理
         var getid = board[by][bx];
         if(change[getid] < 0)  getid = change[getid]*(-1);
@@ -188,6 +209,11 @@ function isstand(x,y){
 }
 //敵陣に入ったかの判定
 function changable(by){
-    if((3-3*turn <= by) && (by <= 5 - 3*turn)) return(1);
+    if (turn == 1){
+        if (by == 0) return(1);
+    }else{
+        if (by == 4) return(1);
+    }
+    //if((3-3*turn <= by) && (by <= 5 - 3*turn)) return(1);
     return(0);
 }
