@@ -31,6 +31,28 @@ var mw = (total_w-board_w)/2,   mh = (total_h-board_h)/2;  //将棋盤周りの�
 var stand_w = 9, stand_h = 1;    //駒台のサイズ
 var msw = 1, msh = 2;     //駒台周りの余白
 
+function select(){
+    console.log('select');
+
+    fighter = [0,0,0,0,0,0,0,0,0,0];    //今回のゲームで使う駒のリスト([0～2]は空)
+    ctx.font = " 30px 'ＭＳ ゴシック'"
+        
+    stand = [[0,0,0,0,0,0,0,0,0,0],        //持ち駒(格納位置:駒台の場所、値:駒id) 駒台内の位置
+            [0,0,0,0,0,0,0,0,0,0]];
+    numstand = [[0,1,0,0,0,0,0,0,0,0],        //持ち駒(格納位置:駒id、値:個数)　駒台内の内訳  王側[1]
+                [0,0,1,0,0,0,0,0,0,0]];       //                                           玉側[2]
+    turn = Math.floor(Math.random ()*2)*2 -1;   //手番をランダムで決定
+    winner = 0;
+    recentx = null;
+    recenty = null;
+    zyouseki_turn = 0;
+    zyouseki_mode = turn + 2;
+    draw_all_select();     //画面全体を描画
+
+    numstand;
+
+}
+
 function prep(){    //準備モード(駒の選択&駒の配置)
 /*
     //駒の選択
@@ -64,18 +86,20 @@ function prep(){    //準備モード(駒の選択&駒の配置)
 //    initLists = boardPrep(numstand)
 ctx.font = " 30px 'ＭＳ ゴシック'"
     
+console.log('prep');
+
 initLists = [[               //盤の初期配置
-    [0,0,2,0,0],
     [0,0,0,0,0],
     [0,0,0,0,0],
     [0,0,0,0,0],
-    [0,0,1,0,0]
+    [0,0,0,0,0],
+    [0,0,0,0,0]
 ],[               //各駒の初期配属
-    [0,0,-1,0,0],
     [0,0,0,0,0],
     [0,0,0,0,0],
     [0,0,0,0,0],
-    [0,0,1,0,0]
+    [0,0,0,0,0],
+    [0,0,0,0,0]
 ]]
 
 board = initLists[0];
@@ -88,10 +112,15 @@ movable = [            //移動可能マス
     [0,0,0,0,0],
     [0,0,0,0,0]
 ];
+
+
+
 stand = [[0,0,0,0,0,0,0,0,0,0],        //持ち駒(格納位置:駒台の場所、値:駒id) 駒台内の位置
          [0,0,0,0,0,0,0,0,0,0]];
-numstand = [[0,0,0,2,1,0,0,0,0,0],        //持ち駒(格納位置:駒id、値:個数)　駒台内の内訳  王側[1]
+/*         
+numstand = [[0,1,0,2,1,0,0,0,0,0],        //持ち駒(格納位置:駒id、値:個数)　駒台内の内訳  王側[1]
             [0,0,0,0,0,5,0,2,0,0]];       //                                           玉側[2]
+*/
 turn = Math.floor(Math.random ()*2)*2 -1;   //手番をランダムで決定
 winner = 0;
 recentx = null;
@@ -262,6 +291,61 @@ function draw_all(){
     }
 }
 
+function draw_all_select(){
+    status = 0;   //状態初期化
+    draw_out();  //盤外
+
+
+    ctx.fillStyle = line_color[0];    //駒台
+    ctx.lineWidth = 3;
+    ctx.strokeRect(psize*msw, psize*msh, psize*(stand_w), psize*(stand_h)); //枠線
+    ctx.strokeRect(psize*(total_w-stand_w-msw), psize*(total_h-stand_h-msh), psize*(stand_w), psize*(stand_h));
+    ctx.fillStyle = stand_color[0];
+    ctx.fillRect(psize*msw+1, psize*msh+1, psize*(stand_w)-2, psize*(stand_h)-2);  //枠内
+    ctx.fillRect(psize*(total_w-stand_w-msw)+1, psize*(total_h-stand_h-msh)+1, psize*(stand_w)-2, psize*(stand_h)-2);
+    set_stand();  //stand配列を更新
+    
+    for(sy=stand_h-1; 0<=sy; sy--){
+        for(sx=stand_w-1; 0<=sx; sx--){
+            id = stand[0][stand_w*sy+sx];
+            id2 = stand[1][stand_w*sy+sx];
+            draw_stand(sx,sy,id,1,0);
+        }
+    }
+    /*
+    for(sy=0; sy<stand_h; sy++){
+        for(sx=0; sx<stand_w; sx++){
+            id = stand[0][stand_w*sy+sx];
+            id2 = stand[1][stand_w*sy+sx];
+            draw_stand(sx,sy,id2,-1,0);
+
+            if(id==1 || id==2) winner=1;  //勝敗判定
+            if(id2==1 || id2==2) winner=-1;
+        }
+    }
+    */
+
+    //決定ボタン描画
+    ctx.font = " 26px 'ＭＳ ゴシック'"
+    ctx.fillStyle = "saddlebrown";
+    ctx.fillRect(psize*1, height/2+psize*3, psize*(total_w-2), psize*1);  //枠内
+//    ctx.fillRect(psize*1, height/2+psize*5, psize*(total_w-2), psize*1);  //枠内
+    ctx.fillStyle = "snow";
+    ctx.fillText("これでコマ決定！", psize*3+4, height/2+psize*3+30);
+//    ctx.fillText("通常対局(友達)", psize*3+18, height/2+psize*5+30);
+
+    ctx.fillStyle = "black";    //手番の表示
+    if(turn==1){
+        ctx.fillText("手番",psize/2,total_h*psize-12);
+    }else if(turn==-1){
+        ctx.fillText("手番",psize/2,psize);
+    }
+
+    if(turn==-1 && (mode==1 || mode==3)){
+        action2();    //CPUの手番
+    }
+}
+
 function draw_all_prep(){   //ゲーム開始の駒並べ
     status = 0;   //状態初期化
     draw_out();  //盤外
@@ -409,6 +493,37 @@ function draw_out(x,y,color){
     ctx.fillRect(0, 0, psize*total_w, psize*total_h);  //盤面描画
 }
 
+function draw_stand_select(sx,sy,id,m,color){
+    if(m==1){
+        px = (total_w-msw-stand_w+sx)*psize;
+        py = (total_h-msh-stand_h+sy)*psize;
+    }else if(m==-1){
+        px = (stand_w+msw-sx-1)*psize;
+        py = (stand_h+msh-sy-1)*psize;
+    }
+    ctx.fillStyle = stand_color[color];
+    ctx.fillRect(px+1, py+1, psize-2, psize-2);  //盤面描画
+    if(0<id){   //駒描画
+        if(m==1){
+            ctx.fillStyle = font_color[0];
+            ctx.fillText(nametbl[id],px+5,py+32);
+            ctx.fillStyle = font_color[2];
+            if(numstand[0][id]>1)  ctx.fillText(numstand[0][id],px+20,py+26);
+        }else if(m==-1){
+            px = -px-psize;
+            py = -py-psize;
+            ctx.rotate(Math.PI); //半回転
+            ctx.fillStyle = font_color[0];
+            ctx.fillText(nametbl[id],px+5,py+32);
+            ctx.rotate(Math.PI); //半回転
+            px *= (-1);
+            py *= (-1);
+            ctx.fillStyle = font_color[2];
+            if(numstand[1][id]>1)  ctx.fillText(numstand[1][id],px-14,py);
+        }
+    }
+}
+
 ///////////////////////////////////////////動作処理////////////////////////////////////////////////////
 //タッチ処理(タブレット)
 function touchstart(e){
@@ -442,8 +557,8 @@ function masu_select(tx,ty){
             //mode=2;  //???通常対局
             //init();  //ゲーム開始
         }else if(psize*1<tx && tx<psize*(total_w-2) && height/2+psize*3<ty && ty<(height/2+psize*5)){
-            mode=5;  //CPU通常対局
-            prep();  //ゲーム開始
+            mode=6;  //CPU通常対局
+            select();  //ゲーム開始
         }else if(psize*1<tx && tx<psize*(total_w-2) && height/2+psize*5<ty && ty<(height/2+psize*7)){
             mode=4;  //友達通常対局
             prep();  //ゲーム開始
@@ -460,10 +575,25 @@ function masu_select(tx,ty){
     if(mode==3 && turn==1) action1(x,y);
     if(mode==4) action1(x,y);
 
+    if(mode==6){
+        if(JSON.stringify(fighter) == JSON.stringify([0,0,0,0,0,0,0,0,0,0])){   //残り候補駒なし
+            mode=5;
+            prep();
+        }else{
+
+        }
+    }
+
     if(mode==5){
         if(psize*1<tx && tx<psize*(total_w-2) && height/2+psize*3<ty && ty<(height/2+psize*4)){
-            mode=3;
-            init();
+            console.log(JSON.stringify(numstand[0]));
+            console.log(JSON.stringify([0,0,0,0,0,0,0,0,0,0]));
+            if (JSON.stringify(numstand[0]) == JSON.stringify([0,0,0,0,0,0,0,0,0,0])){        //持ち駒(格納位置:駒id、値:個数)　駒台内の内訳  王側[1]
+                mode=3;
+                init();
+            }else{
+                alert('駒は全て配置してください');
+            }
         }else{
             action0(x,y);
         }
